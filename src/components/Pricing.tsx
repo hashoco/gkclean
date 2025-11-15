@@ -71,6 +71,9 @@ export const Pricing = () => {
           우리 매장 기준 견적 받기 →
         </a>
       </div>
+      
     </section>
   );
 };
+
+
