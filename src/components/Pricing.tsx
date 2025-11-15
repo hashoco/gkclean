@@ -65,7 +65,7 @@ export const Pricing = () => {
       {/* 전체 CTA 1개 */}
       <div className="flex justify-center mt-12">
         <a
-          href="#contact"
+          href="pricing"
           className="px-10 py-4 text-lg font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition shadow-md"
         >
           우리 매장 기준 견적 받기 →
