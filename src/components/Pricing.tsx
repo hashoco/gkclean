@@ -61,7 +61,6 @@ export const Pricing = () => {
           </div>
         ))}
       </div>
-
       {/* 전체 CTA 1개 */}
       <div className="flex justify-center mt-12">
         <a
