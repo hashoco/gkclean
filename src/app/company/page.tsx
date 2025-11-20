@@ -69,19 +69,20 @@ export default function CompanyPage() {
         >
           매장 방문 또는 물류 협의를 원하시는 경우 아래 위치로 오시면 됩니다.
           <br />
-          <strong>경기도 시흥시 신천로104번길 30</strong>
+          <strong>경기도 시흥시 신천동 570-1</strong>
         </SectionTitle>
 
-        <div className="mt-10 rounded-2xl overflow-hidden shadow-xl border">
-          <iframe
-            src="https://www.google.com/maps?q=경기도%20시흥시%20신천로104번길%2030&output=embed"
-            width="100%"
-            height="450"
-            style={{ border: 0 }}
-            allowFullScreen={true}
-            loading="lazy"
-          ></iframe>
-        </div>
+      <div className="mt-10 rounded-2xl overflow-hidden shadow-xl border">
+  <iframe
+    src="https://www.google.com/maps?q=경기도%20시흥시%20신천동%20570-1&output=embed"
+    width="100%"
+    height="450"
+    style={{ border: 0 }}
+    allowFullScreen={true}
+    loading="lazy"
+  ></iframe>
+</div>
+
       </section>
 
       
