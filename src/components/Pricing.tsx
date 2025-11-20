@@ -2,19 +2,19 @@ export const Pricing = () => {
   const plans = [
     {
       title: "헬스장",
-      price: "240,000원~",
+      price: "40,000원~",
       desc: "타올 기준 물량 적용",
       features: ["정기 수거·배송", "전문 세탁 공정", "개별 포장 제공"],
     },
     {
-      title: "필라테스 / 요가",
-      price: "180,000원~",
+      title: "미용실",
+      price: "40,000원~",
       desc: "타올 기준 물량 적용",
       features: ["정기 수거·배송", "전문 세탁 공정", "업종 맞춤 공정"],
     },
     {
-      title: "피부관리실",
-      price: "150,000원~",
+      title: "에스테틱 / 피부관리샵",
+      price: "45,000원~",
       desc: "타올·가운 기준 물량 적용",
       features: ["위생 살균 공정", "개별 포장", "정확한 물량 관리"],
     },
@@ -27,7 +27,7 @@ export const Pricing = () => {
           가격 안내
         </h2>
         <p className="mt-3 text-gray-500 dark:text-gray-300">
-          매장 상황에 맞춘 합리적인 요금제로 안정적인 세탁 운영을 경험하세요.
+          업종 특성에 맞춘 합리적인 요금제로 안정적인 세탁 운영을 경험하세요.
         </p>
       </div>
 
@@ -61,15 +61,16 @@ export const Pricing = () => {
           </div>
         ))}
       </div>
-      {/* 전체 CTA 1개 */}
+
+      {/* CTA 버튼 */}
       <div className="flex justify-center mt-12">
         <a
-          href="pricing"
+          href="/contact"
           className="px-10 py-4 text-lg font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition shadow-md"
         >
           우리 매장 기준 견적 받기 →
         </a>
-      </div>  
+      </div>
     </section>
   );
 };

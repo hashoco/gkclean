@@ -24,9 +24,9 @@ export default function PricingPage() {
           {/* 헬스장 */}
           <div className="border rounded-2xl shadow-md p-8 bg-white dark:bg-gray-800 hover:shadow-xl transition">
             <h3 className="text-2xl font-bold text-gray-800 dark:text-white">헬스장</h3>
-            <p className="mt-3 text-gray-600 dark:text-gray-300">수건 · 운동복 · 매일 대량 물량</p>
+            <p className="mt-3 text-gray-600 dark:text-gray-300">수건 · 운동복 · 대량 물량 매장</p>
 
-            <p className="mt-6 text-4xl font-extrabold text-green-600">240,000원~</p>
+            <p className="mt-6 text-4xl font-extrabold text-green-600">40,000원~</p>
             <p className="text-gray-500 dark:text-gray-400 text-sm">월 요금 (기준 물량 기준)</p>
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 my-6"></div>
@@ -39,12 +39,12 @@ export default function PricingPage() {
             </ul>
           </div>
 
-          {/* 필라테스/요가 */}
+          {/* 미용실 */}
           <div className="border rounded-2xl shadow-md p-8 bg-white dark:bg-gray-800 hover:shadow-xl transition">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">필라테스 · 요가</h3>
-            <p className="mt-3 text-gray-600 dark:text-gray-300">수건 중심, 중소량 매장에 최적</p>
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">미용실</h3>
+            <p className="mt-3 text-gray-600 dark:text-gray-300">수건 중심, 잦은 교체 필요 업종</p>
 
-            <p className="mt-6 text-4xl font-extrabold text-green-600">180,000원~</p>
+            <p className="mt-6 text-4xl font-extrabold text-green-600">40,000원~</p>
             <p className="text-gray-500 dark:text-gray-400 text-sm">월 요금 (기준 물량 기준)</p>
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 my-6"></div>
@@ -57,12 +57,12 @@ export default function PricingPage() {
             </ul>
           </div>
 
-          {/* 피부관리실 */}
+          {/* 에스테틱 / 피부관리샵 */}
           <div className="border rounded-2xl shadow-md p-8 bg-white dark:bg-gray-800 hover:shadow-xl transition">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">피부관리실</h3>
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">에스테틱 · 피부관리샵</h3>
             <p className="mt-3 text-gray-600 dark:text-gray-300">시트 · 가운 등 고위생 기준 필요 업종</p>
 
-            <p className="mt-6 text-4xl font-extrabold text-green-600">150,000원~</p>
+            <p className="mt-6 text-4xl font-extrabold text-green-600">45,000원~</p>
             <p className="text-gray-500 dark:text-gray-400 text-sm">월 요금 (기준 물량 기준)</p>
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-700 my-6"></div>
@@ -76,8 +76,6 @@ export default function PricingPage() {
           </div>
 
         </div>
-
-       
 
       </section>
     </div>
