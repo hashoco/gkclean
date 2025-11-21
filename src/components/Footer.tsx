@@ -1,32 +1,18 @@
 import Link from "next/link";
-import Image from "next/image";
 import React from "react";
 import { Container } from "@/components/Container";
 
 export function Footer() {
-  const menu = [
-    { name: "서비스 소개", href: "/about" },
-    { name: "요금 안내", href: "/pricing" },
-    { name: "이용 가이드", href: "/guide" },
-    { name: "파트너 신청", href: "/partner" }
-  ];
-
-  const policy = [
-    { name: "이용약관", href: "/terms" },
-    { name: "개인정보 처리방침", href: "/privacy" },
-    { name: "고객센터", href: "/support" }
-  ];
-
   return (
     <footer className="border-t border-gray-200 dark:border-gray-800 mt-10 py-10">
       <Container>
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-4">
+        {/* 가로 정렬 영역 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-          {/* 브랜드 정보 */}
-          <div className="lg:col-span-2">
+          {/* 브랜드 설명 */}
+          <div>
             <Link href="/" className="flex items-center space-x-2 text-2xl font-semibold">
-              
               <span>GK CLEAN</span>
             </Link>
 
@@ -38,12 +24,20 @@ export function Footer() {
             </p>
           </div>
 
+          {/* 회사 정보 (오른쪽에 배치됨) */}
+          <div className="flex flex-col justify-center text-gray-500 dark:text-gray-400 text-sm leading-relaxed lg:items-end">
+            <p>📍 주소: 경기도 시흥시 신천동 570-1</p>
+            <p>👤 대표: 양정섭</p>
+            <p>📞 연락처: 010-6212-2272</p>
+          </div>
+
         </div>
 
         {/* copyright */}
         <div className="mt-10 text-sm text-center text-gray-600 dark:text-gray-400">
           © {new Date().getFullYear()} GK CLEAN. All rights reserved.
         </div>
+
       </Container>
     </footer>
   );
