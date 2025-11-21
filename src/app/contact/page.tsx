@@ -61,7 +61,7 @@ export default function ContactPage() {
               href="tel:01012341234"
               className="block mt-6 text-3xl font-extrabold text-gray-800 dark:text-white hover:text-green-600"
             >
-              📞 010-1234-1234
+              📞 010-6212-2272
             </a>
             <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm">
               평일 09:00 ~ 18:00 상담 가능
