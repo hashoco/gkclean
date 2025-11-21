@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Inquiry {
+  @@map("inquiry")   // ★ 여기가 핵심 (테이블 이름 매핑)
+
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  subject   String
+  message   String
+  sent_dt   DateTime @default(now())
+}
