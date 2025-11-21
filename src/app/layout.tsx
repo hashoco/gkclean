@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   description: "GKClean",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
