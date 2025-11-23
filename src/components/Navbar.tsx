@@ -51,7 +51,7 @@ export const Navbar = () => {
 
           {/* Mobile Menu Toggle */}
           <Disclosure as="div" className="lg:hidden">
-            {({ open }) => (
+            {({ open, close }) => (
               <>
                 <Disclosure.Button
                   aria-label="Toggle Menu"
@@ -93,6 +93,7 @@ export const Navbar = () => {
                             ? "/pricing"
                             : "/contact"
                       }
+                       onClick={() => close()}  
                       className="block py-3 text-gray-700 dark:text-gray-300 hover:text-green-600"
                     >
                       {item}

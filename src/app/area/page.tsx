@@ -32,35 +32,30 @@ export default function AreaPage() {
           <div className="p-6 border rounded-xl shadow-md bg-white dark:bg-gray-800">
             <h3 className="text-xl font-bold text-green-600">서울권</h3>
             <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-300">
-              <li>✔ 영등포구</li>
               <li>✔ 구로구</li>
+              <li>✔ 양천구</li>
               <li>✔ 금천구</li>
-              <li>✔ 동작구</li>
-              <li>✔ 관악구</li>
-              <li>✔ 강서구 일부</li>
             </ul>
           </div>
 
           {/* 경기 서남권 */}
           <div className="p-6 border rounded-xl shadow-md bg-white dark:bg-gray-800">
-            <h3 className="text-xl font-bold text-green-600">경기 서남권</h3>
+            <h3 className="text-xl font-bold text-green-600">수도권</h3>
             <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-300">
               <li>✔ 시흥시</li>
               <li>✔ 안산시</li>
               <li>✔ 광명시</li>
-              <li>✔ 부천시 일부</li>
-              <li>✔ 안양시 일부</li>
+              <li>✔ 부천시</li>
+              <li>✔ 안양시</li>
+              <li>✔ 인천시</li>
             </ul>
           </div>
 
           {/* 협의 가능 지역 */}
           <div className="p-6 border rounded-xl shadow-md bg-white dark:bg-gray-800">
-            <h3 className="text-xl font-bold text-green-600">협의 가능 지역</h3>
+            <h3 className="text-xl font-bold text-green-600">이외</h3>
             <ul className="mt-4 space-y-2 text-gray-600 dark:text-gray-300">
-              <li>✔ 인천 연계 지역</li>
-              <li>✔ 서울 강남권</li>
-              <li>✔ 수원 / 군포 / 의왕</li>
-              <li>✔ 기타 지역 협의 가능</li>
+              <li>기타 지역 협의가능</li>
             </ul>
           </div>
 
