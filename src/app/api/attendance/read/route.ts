@@ -29,6 +29,7 @@ export async function POST(req: Request) {
       },
     });
 
+    
     return Response.json({ success: true, rows });
   } catch (err) {
     console.error("Attendance read error:", err);

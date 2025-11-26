@@ -13,6 +13,7 @@ interface AttendanceRow {
   minutes: number;
 }
 
+
 export default function AttendancePage() {
   const [month, setMonth] = useState<string>(dayjs().format("YYYY-MM"));
   const [rows, setRows] = useState<AttendanceRow[]>([]);
