@@ -13,6 +13,7 @@ interface AuthUser {
 }
 
 const handler = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,   
   providers: [
     CredentialsProvider({
       name: "credentials",
