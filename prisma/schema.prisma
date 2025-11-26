@@ -17,3 +17,27 @@ model Inquiry {
   message   String
   sent_dt   DateTime @default(now())
 }
+
+model User {
+  
+  id        String   @id @default(uuid())
+  loginId   String   @unique     // 로그인 아이디
+  email     String   @unique     // 비밀번호 찾기용
+  password  String               // 해시 저장
+  name      String
+  isAdmin   String   @default("N") // 관리자
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  date      String
+  inTime    String
+  outTime   String
+  workCalc  String
+  hours     Int
+  minutes   Int
+  createdAt DateTime @default(now())
+}
