@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useEffect, useState } from "react";
 
 export default function DeliveryPage() {
@@ -302,17 +303,6 @@ export default function DeliveryPage() {
               dark:text-gray-100 dark:placeholder-gray-500"
           />
 
-          {/* 사용여부 */}
-          <select
-            value={useYn}
-            onChange={(e) => setUseYn(e.target.value)}
-            className="border p-2 rounded w-full 
-              dark:bg-gray-800 dark:border-gray-700 
-              dark:text-gray-100"
-          >
-            <option value="Y">사용</option>
-            <option value="N">미사용</option>
-          </select>
 
           {/* 입금예정액(콤마 적용) */}
           <input
@@ -324,6 +314,17 @@ export default function DeliveryPage() {
               dark:text-gray-100 dark:placeholder-gray-500"
           />
 
+          {/* 사용여부 */}
+          <select
+            value={useYn}
+            onChange={(e) => setUseYn(e.target.value)}
+            className="border p-2 rounded w-full 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100"
+          >
+            <option value="Y">사용</option>
+            <option value="N">미사용</option>
+          </select>
           <button
             onClick={savePartner}
             className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
