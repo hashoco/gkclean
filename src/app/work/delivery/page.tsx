@@ -53,7 +53,6 @@ export default function DeliveryPage() {
     return Number(value.replace(/,/g, "")).toLocaleString();
   };
 
-  // 👉 숫자만 입력 + 콤마 표시
   const handleAmountChange = (value: string) => {
     const onlyNumber = value.replace(/[^\d]/g, "");
     setExpectedAmount(formatComma(onlyNumber));
@@ -74,7 +73,7 @@ export default function DeliveryPage() {
       phone,
       address,
       remark,
-      expectedAmount: expectedAmount.replace(/,/g, ""), // ★ 콤마 제거 후 저장
+      expectedAmount: expectedAmount.replace(/,/g, ""),
       delYn: useYn === "Y" ? "N" : "Y",
     };
 
@@ -111,7 +110,7 @@ export default function DeliveryPage() {
   };
 
   // ===============================
-  // 5) Row 클릭 → 값을 입력폼에 설정
+  // 5) Row 클릭
   // ===============================
   const onRowClick = (p: any) => {
     setPartnerCode(p.partnerCode);
@@ -121,7 +120,6 @@ export default function DeliveryPage() {
     setPhone(p.phone ?? "");
     setAddress(p.address ?? "");
     setRemark(p.remark ?? "");
-
     setUseYn(p.delYn === "N" ? "Y" : "N");
 
     setExpectedAmount(
@@ -132,11 +130,13 @@ export default function DeliveryPage() {
   };
 
   // ===============================
-  // 6) 필터링
+  // 6) 필터
   // ===============================
   const filtered = partners
     .filter((p: any) =>
-      !searchName ? true : p.partnerName.includes(searchName)
+      !searchName.trim()
+        ? true
+        : p.partnerName.toLowerCase().includes(searchName.toLowerCase())
     )
     .filter((p: any) => {
       if (useFilter === "ALL") return true;
@@ -158,13 +158,17 @@ export default function DeliveryPage() {
             placeholder="거래처명 검색"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
-            className="border p-2 rounded w-40 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-40 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100 dark:placeholder-gray-500"
           />
 
           <select
             value={useFilter}
             onChange={(e) => setUseFilter(e.target.value)}
-            className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100"
           >
             <option value="ALL">전체</option>
             <option value="Y">사용</option>
@@ -172,7 +176,7 @@ export default function DeliveryPage() {
           </select>
         </div>
 
-        {/* 테이블 */}
+        {/* 목록 */}
         <div className="overflow-auto max-h-[600px] border rounded dark:border-gray-700">
           <table className="w-full text-sm">
             <thead className="bg-gray-100 dark:bg-gray-800">
@@ -181,7 +185,7 @@ export default function DeliveryPage() {
                 <th className="border p-2 dark:border-gray-700">거래처명</th>
                 <th className="border p-2 dark:border-gray-700">부가세</th>
                 <th className="border p-2 dark:border-gray-700">입금자</th>
-                <th className="border p-2 dark:border-gray-700">최근 입금예정액</th>
+                <th className="border p-2 dark:border-gray-700">입금예정액</th>
                 <th className="border p-2 dark:border-gray-700">사용</th>
               </tr>
             </thead>
@@ -210,7 +214,10 @@ export default function DeliveryPage() {
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center p-4 text-gray-400 dark:text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="text-center p-4 text-gray-400 dark:text-gray-500"
+                  >
                     데이터 없음
                   </td>
                 </tr>
@@ -226,73 +233,95 @@ export default function DeliveryPage() {
 
         <div className="space-y-3">
 
+          {/* 코드 */}
           <input
             value={partnerCode}
             disabled
             placeholder="자동채번"
-            className="border p-2 rounded w-full bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+            className="border p-2 rounded w-full 
+              bg-gray-100 dark:bg-gray-800
+              dark:border-gray-700 dark:text-gray-300"
           />
 
+          {/* 거래처명 */}
           <input
             value={partnerName}
             onChange={(e) => setPartnerName(e.target.value)}
             placeholder="거래처명"
-            className="border p-2 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100 dark:placeholder-gray-500"
           />
 
+          {/* 부가세 */}
           <select
             value={vatYn}
             onChange={(e) => setVatYn(e.target.value)}
-            className="border p-2 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100"
           >
             <option value="Y">부가세 적용</option>
             <option value="N">부가세 미적용</option>
           </select>
 
+          {/* 입력폼들 */}
           <input
             value={payerName}
             onChange={(e) => setPayerName(e.target.value)}
             placeholder="입금자명"
-            className="border p-2 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100 dark:placeholder-gray-500"
           />
 
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="전화번호"
-            className="border p-2 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100 dark:placeholder-gray-500"
           />
 
           <input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="주소"
-            className="border p-2 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100 dark:placeholder-gray-500"
           />
 
           <textarea
             value={remark}
             onChange={(e) => setRemark(e.target.value)}
             placeholder="비고"
-            className="border p-2 rounded w-full h-20 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full h-20
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100 dark:placeholder-gray-500"
           />
 
           {/* 사용여부 */}
           <select
             value={useYn}
             onChange={(e) => setUseYn(e.target.value)}
-            className="border p-2 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100"
           >
             <option value="Y">사용</option>
             <option value="N">미사용</option>
           </select>
 
-          {/* ★★★ 입금예정액 (콤마 적용) ★★★ */}
+          {/* 입금예정액(콤마 적용) */}
           <input
             value={expectedAmount}
             onChange={(e) => handleAmountChange(e.target.value)}
             placeholder="입금예정액"
-            className="border p-2 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-2 rounded w-full 
+              dark:bg-gray-800 dark:border-gray-700 
+              dark:text-gray-100 dark:placeholder-gray-500"
           />
 
           <button
@@ -304,7 +333,9 @@ export default function DeliveryPage() {
 
           <button
             onClick={resetForm}
-            className="w-full bg-gray-300 text-black dark:bg-gray-700 dark:text-gray-100 p-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
+            className="w-full bg-gray-300 text-black 
+              dark:bg-gray-700 dark:text-gray-100 
+              p-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
           >
             신규등록
           </button>
