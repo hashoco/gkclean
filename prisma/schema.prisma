@@ -41,3 +41,31 @@ model Attendance {
   minutes   Int
   createdAt DateTime @default(now())
 }
+
+model Partner {
+  id        Int      @id @default(autoincrement())
+  partnerCode String @unique
+  partnerName String
+  vatYn     String   // Y/N
+  payerName String?
+  phone     String?
+  address   String?
+  remark    String?
+  delYn     String   @default("N")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deposits  PartnerDeposit[]
+}
+
+
+model PartnerDeposit {
+  id        Int      @id @default(autoincrement())
+  partnerId Int
+  expectedAmount Int
+  createdAt DateTime @default(now())
+
+  partner   Partner  @relation(fields: [partnerId], references: [id])
+}
+
+

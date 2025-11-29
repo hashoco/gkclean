@@ -14,7 +14,7 @@ export const Navbar = () => {
   // 업무지원 메뉴 리스트
   const workMenus = [
     { name: "근태관리", href: "/work/attendance" },
-    { name: "배달관리", href: "/work/delivery" },
+    { name: "거래처관리", href: "/work/delivery" },
     { name: "고객관리", href: "/work/customer" },
   ];
 

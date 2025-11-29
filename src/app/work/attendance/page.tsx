@@ -57,32 +57,35 @@ export default function AttendancePage() {
     }
   };
 
-  // ========= 기본 데이터 생성 =========
   const generateMonthData = (targetMonth: string) => {
-    const start = dayjs(targetMonth + "-01");
-    const daysInMonth = start.daysInMonth();
+  const start = dayjs(targetMonth + "-01");
+  const daysInMonth = start.daysInMonth();
 
-    const newRows: AttendanceRow[] = [];
+  const newRows: AttendanceRow[] = [];
 
-    for (let i = 1; i <= daysInMonth; i++) {
-      const dateObj = start.date(i);
-      const defaultIn = "08:30";
-      const defaultOut = "12:30";
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dateObj = start.date(i);
+    const isSunday = dateObj.day() === 0;
 
-      const work = calcWorkTime(defaultIn, defaultOut);
+    // 일요일이면 0시간 처리
+    const defaultIn = isSunday ? "00:00" : "08:30";
+    const defaultOut = isSunday ? "00:00" : "12:30";
 
-      newRows.push({
-        date: dateObj.format("YYYY-MM-DD"),
-        inTime: defaultIn,
-        outTime: defaultOut,
-        workCalc: work.calc,
-        hours: work.hours,
-        minutes: work.minutes,
-      });
-    }
+    const work = calcWorkTime(defaultIn, defaultOut);
 
-    setRows(newRows);
-  };
+    newRows.push({
+      date: dateObj.format("YYYY-MM-DD"),
+      inTime: defaultIn,
+      outTime: defaultOut,
+      workCalc: work.calc,
+      hours: work.hours,
+      minutes: work.minutes,
+    });
+  }
+
+  setRows(newRows);
+};
+
 
   // ========= 근무시간 계산 =========
   const calcWorkTime = (inTime: string, outTime: string) => {
