@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 
-// ========= 타입 =========
 interface AttendanceRow {
   date: string;
   inTime: string;
@@ -19,12 +18,10 @@ export default function AttendancePage() {
   const [loadMessage, setLoadMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // 페이지 로드시 조회
   useEffect(() => {
     fetchMonthData(month);
   }, [month]);
 
-  // ========= 조회 =========
   const fetchMonthData = async (targetMonth: string) => {
     const res = await fetch("/api/attendance/read", {
       method: "POST",
@@ -35,7 +32,6 @@ export default function AttendancePage() {
     const data = await res.json();
 
     if (data.success && data.rows.length > 0) {
-      // 저장된 데이터 사용
       setLoadMessage("✔ 저장된 근태 데이터를 불러왔습니다.");
 
       const mapped = data.rows.map((d: any) => ({
@@ -49,7 +45,6 @@ export default function AttendancePage() {
 
       setRows(mapped);
     } else {
-      // 기본값 생성
       setLoadMessage(
         "ℹ 이번 달 데이터가 없어 기본 근무시간(08:30~12:30)으로 생성되었습니다."
       );
@@ -58,36 +53,33 @@ export default function AttendancePage() {
   };
 
   const generateMonthData = (targetMonth: string) => {
-  const start = dayjs(targetMonth + "-01");
-  const daysInMonth = start.daysInMonth();
+    const start = dayjs(targetMonth + "-01");
+    const daysInMonth = start.daysInMonth();
 
-  const newRows: AttendanceRow[] = [];
+    const newRows: AttendanceRow[] = [];
 
-  for (let i = 1; i <= daysInMonth; i++) {
-    const dateObj = start.date(i);
-    const isSunday = dateObj.day() === 0;
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateObj = start.date(i);
+      const isSunday = dateObj.day() === 0;
 
-    // 일요일이면 0시간 처리
-    const defaultIn = isSunday ? "00:00" : "08:30";
-    const defaultOut = isSunday ? "00:00" : "12:30";
+      const defaultIn = isSunday ? "00:00" : "08:30";
+      const defaultOut = isSunday ? "00:00" : "12:30";
 
-    const work = calcWorkTime(defaultIn, defaultOut);
+      const work = calcWorkTime(defaultIn, defaultOut);
 
-    newRows.push({
-      date: dateObj.format("YYYY-MM-DD"),
-      inTime: defaultIn,
-      outTime: defaultOut,
-      workCalc: work.calc,
-      hours: work.hours,
-      minutes: work.minutes,
-    });
-  }
+      newRows.push({
+        date: dateObj.format("YYYY-MM-DD"),
+        inTime: defaultIn,
+        outTime: defaultOut,
+        workCalc: work.calc,
+        hours: work.hours,
+        minutes: work.minutes,
+      });
+    }
 
-  setRows(newRows);
-};
+    setRows(newRows);
+  };
 
-
-  // ========= 근무시간 계산 =========
   const calcWorkTime = (inTime: string, outTime: string) => {
     const [inH, inM] = inTime.split(":").map(Number);
     const [outH, outM] = outTime.split(":").map(Number);
@@ -107,7 +99,6 @@ export default function AttendancePage() {
     };
   };
 
-  // ========= 행 수정 =========
   const updateRow = (
     index: number,
     key: keyof AttendanceRow,
@@ -126,7 +117,6 @@ export default function AttendancePage() {
     setRows(updated);
   };
 
-  // ========= 저장 =========
   const saveData = async () => {
     setIsSaving(true);
 
@@ -140,20 +130,20 @@ export default function AttendancePage() {
 
     if (res.ok) {
       alert("근태 데이터가 저장되었습니다!");
-      fetchMonthData(month); // 저장 후 다시 조회
+      fetchMonthData(month);
     } else {
       alert("저장에 실패했습니다.");
     }
   };
 
-  // ========= 총합 =========
   const totalHours = rows.reduce((sum, r) => sum + r.hours, 0);
   const totalMinutes = rows.reduce((sum, r) => sum + r.minutes, 0);
   const finalHours = totalHours + Math.floor(totalMinutes / 60);
   const finalMinutes = totalMinutes % 60;
 
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className="container mx-auto py-10 px-4 text-gray-900 dark:text-gray-100">
+
       {/* 제목 + 버튼 */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">근태관리</h1>
@@ -173,7 +163,7 @@ export default function AttendancePage() {
           type="month"
           value={month}
           onChange={(e) => setMonth(e.target.value)}
-          className="border p-2 rounded"
+          className="border p-2 rounded dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
         />
       </div>
 
@@ -184,17 +174,17 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* 스크롤 테이블 */}
-      <div className="overflow-y-auto max-h-[600px] border rounded-md shadow-sm">
+      {/* 테이블 */}
+      <div className="overflow-y-auto max-h-[600px] border rounded-md shadow-sm dark:border-gray-700">
         <table className="w-full border-collapse text-center">
-          <thead className="sticky top-0 bg-gray-200 z-10">
+          <thead className="sticky top-0 bg-gray-200 dark:bg-gray-700 dark:text-gray-100">
             <tr>
-              <th className="border p-2 w-20">일자</th>
-              <th className="border p-2 w-28">출근</th>
-              <th className="border p-2 w-28">퇴근</th>
-              <th className="border p-2 w-28">계산</th>
-              <th className="border p-2 w-20">시간</th>
-              <th className="border p-2 w-20">분</th>
+              <th className="border p-2 w-20 dark:border-gray-600">일자</th>
+              <th className="border p-2 w-28 dark:border-gray-600">출근</th>
+              <th className="border p-2 w-28 dark:border-gray-600">퇴근</th>
+              <th className="border p-2 w-28 dark:border-gray-600">계산</th>
+              <th className="border p-2 w-20 dark:border-gray-600">시간</th>
+              <th className="border p-2 w-20 dark:border-gray-600">분</th>
             </tr>
           </thead>
 
@@ -203,43 +193,49 @@ export default function AttendancePage() {
               const isSunday = dayjs(r.date).day() === 0;
 
               return (
-                <tr key={i} className={isSunday ? "bg-yellow-100" : ""}>
-                  <td className="border p-2">
+                <tr
+                  key={i}
+                  className={
+                    isSunday
+                      ? "bg-yellow-100 dark:bg-yellow-900/40"
+                      : "bg-white dark:bg-gray-800"
+                  }
+                >
+                  <td className="border p-2 dark:border-gray-700">
                     {dayjs(r.date).format("MM월 DD일")}
                   </td>
 
-                  <td className="border p-2">
+                  <td className="border p-2 dark:border-gray-700">
                     <input
                       type="time"
                       value={r.inTime}
                       onChange={(e) => updateRow(i, "inTime", e.target.value)}
-                      className="p-1 border rounded"
+                      className="p-1 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
                     />
                   </td>
 
-                  <td className="border p-2">
+                  <td className="border p-2 dark:border-gray-700">
                     <input
                       type="time"
                       value={r.outTime}
                       onChange={(e) => updateRow(i, "outTime", e.target.value)}
-                      className="p-1 border rounded"
+                      className="p-1 border rounded dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
                     />
                   </td>
 
-                  <td className="border p-2">{r.workCalc}</td>
-                  <td className="border p-2">{r.hours}</td>
-                  <td className="border p-2">{r.minutes}</td>
+                  <td className="border p-2 dark:border-gray-700">{r.workCalc}</td>
+                  <td className="border p-2 dark:border-gray-700">{r.hours}</td>
+                  <td className="border p-2 dark:border-gray-700">{r.minutes}</td>
                 </tr>
               );
             })}
 
-            {/* 총합 */}
-            <tr className="bg-gray-100 font-bold">
-              <td className="border p-2" colSpan={4}>
+            <tr className="bg-gray-100 dark:bg-gray-700 font-bold">
+              <td className="border p-2 dark:border-gray-600" colSpan={4}>
                 총합
               </td>
-              <td className="border p-2">{finalHours}</td>
-              <td className="border p-2">{finalMinutes}</td>
+              <td className="border p-2 dark:border-gray-600">{finalHours}</td>
+              <td className="border p-2 dark:border-gray-600">{finalMinutes}</td>
             </tr>
           </tbody>
         </table>
