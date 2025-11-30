@@ -20,22 +20,26 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           echo "===== 🚀 Starting Deployment ====="
-
           cd /home/ec2-user/gkclean
 
           echo "📌 1) Pull latest code"
           git pull
 
-          echo "📌 2) Install dependencies"
-          npm install
+          echo "📌 2) Remove old build/cache"
+          rm -rf .next
+          rm -rf node_modules/.cache
 
-          echo "📌 3) Generate Prisma Client"
+          echo "📌 3) Clean install dependencies"
+          npm ci --force || npm install --force
+
+          echo "📌 4) Generate Prisma Client"
           npx prisma generate
 
-          echo "📌 4) Build Next.js"
+          echo "📌 5) Build Next.js project"
           npm run build
 
-          echo "📌 5) Restart PM2"
-          pm2 restart gkclean || pm2 start npm --name gkclean -- start
+          echo "📌 6) Restart PM2"
+          pm2 delete gkclean || true
+          pm2 start npm --name gkclean -- start
 
           echo "===== 🎉 Deployment Completed Successfully ====="
