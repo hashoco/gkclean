@@ -41,7 +41,6 @@ model Attendance {
   minutes   Int
   createdAt DateTime @default(now())
 }
-
 model Partner {
   id          Int      @id @default(autoincrement())
   partnerCode String   @unique
@@ -55,10 +54,15 @@ model Partner {
   bizRegNo    String?  @map("biz_reg_no")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  ownerName String? @map("owner_name")
+  ownerName   String?  @map("owner_name")
 
-  deposits  PartnerDeposit[]
-  dailyLogs DailyWorkLog[] // ★ 반드시 필요
+  // ⭐ 추가된 항목
+  storeType String? @default("BAG")
+
+  deliveryFee Int      @default(0) // 배송비 없을 때 0으로 저장
+
+  deposits    PartnerDeposit[]
+  dailyLogs   DailyWorkLog[]
 }
 
 model PartnerDeposit {

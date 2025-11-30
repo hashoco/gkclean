@@ -8,22 +8,21 @@ export default function DeliveryPage() {
 
   const [partnerCode, setPartnerCode] = useState("");
   const [partnerName, setPartnerName] = useState("");
-  const [bizRegNo, setBizRegNo] = useState(""); 
-  const [ownerName, setOwnerName] = useState(""); // ⭐ 대표자명 추가
+  const [bizRegNo, setBizRegNo] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [vatYn, setVatYn] = useState("Y");
   const [payerName, setPayerName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [remark, setRemark] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState("");
+  const [storeType, setStoreType] = useState("BAG");  // ⭐ 코드값 저장
   const [useYn, setUseYn] = useState("Y");
 
   const [searchName, setSearchName] = useState("");
   const [useFilter, setUseFilter] = useState("ALL");
 
-  // ===================================
-  // 1) 거래처 목록 조회
-  // ===================================
   const loadPartners = async () => {
     setLoading(true);
     const res = await fetch("/api/partners/list");
@@ -38,18 +37,12 @@ export default function DeliveryPage() {
     loadPartners();
   }, []);
 
-  // ===================================
-  // 2) 거래처코드 채번
-  // ===================================
   const getNextCode = async () => {
     const res = await fetch("/api/partners/next-code");
     const data = await res.json();
     return data.nextCode;
   };
 
-  // ===================================
-  // 3) 금액 콤마 처리
-  // ===================================
   const formatComma = (value: string) => {
     if (!value) return "";
     return Number(value.replace(/,/g, "")).toLocaleString();
@@ -60,9 +53,15 @@ export default function DeliveryPage() {
     setExpectedAmount(formatComma(onlyNumber));
   };
 
-  // ===================================
-  // 4) 저장
-  // ===================================
+  const handleDeliveryFeeChange = (value: string) => {
+    const onlyNumber = value.replace(/[^\d]/g, "");
+    setDeliveryFee(formatComma(onlyNumber));
+  };
+
+  const displayStoreType = (t?: string) =>
+    t === "BAG" ? "마대" :
+    t === "MONTH" ? "월별" : "-";
+
   const savePartner = async () => {
     let code = partnerCode.trim();
     if (!code) code = await getNextCode();
@@ -71,13 +70,15 @@ export default function DeliveryPage() {
       partnerCode: code,
       partnerName,
       bizRegNo,
-      ownerName,   // ⭐ 추가
+      ownerName,
       vatYn,
       payerName,
       phone,
       address,
       remark,
       expectedAmount: expectedAmount.replace(/,/g, ""),
+      deliveryFee: deliveryFee.replace(/,/g, ""), 
+      storeType,
       delYn: useYn === "Y" ? "N" : "Y",
     };
 
@@ -98,9 +99,6 @@ export default function DeliveryPage() {
     }
   };
 
-  // ===================================
-  // 5) 입력 초기화
-  // ===================================
   const resetForm = () => {
     setPartnerCode("");
     setPartnerName("");
@@ -112,22 +110,24 @@ export default function DeliveryPage() {
     setAddress("");
     setRemark("");
     setExpectedAmount("");
+    setDeliveryFee("");
+    setStoreType("BAG");   // ⭐ 기본값 코드로 reset
     setUseYn("Y");
   };
 
-  // ===================================
-  // 6) Row 클릭
-  // ===================================
   const onRowClick = (p: any) => {
     setPartnerCode(p.partnerCode);
     setPartnerName(p.partnerName);
     setBizRegNo(p.bizRegNo ?? "");
-    setOwnerName(p.ownerName ?? ""); // ⭐ 대표자명
+    setOwnerName(p.ownerName ?? "");
     setVatYn(p.vatYn ?? "Y");
     setPayerName(p.payerName ?? "");
     setPhone(p.phone ?? "");
     setAddress(p.address ?? "");
     setRemark(p.remark ?? "");
+
+    setStoreType(p.storeType ?? "BAG");   // ⭐ 코드값으로 세팅
+
     setUseYn(p.delYn === "N" ? "Y" : "N");
 
     setExpectedAmount(
@@ -135,11 +135,12 @@ export default function DeliveryPage() {
         ? formatComma(String(p.deposits[0].expectedAmount))
         : ""
     );
+
+    setDeliveryFee(
+      p.deliveryFee ? formatComma(String(p.deliveryFee)) : ""
+    );
   };
 
-  // ===================================
-  // 7) 필터링
-  // ===================================
   const filtered = partners
     .filter((p: any) =>
       !searchName.trim()
@@ -154,45 +155,26 @@ export default function DeliveryPage() {
     });
 
   return (
-    <div className="p-6 grid grid-cols-[1fr_300px] gap-6 text-gray-900 dark:text-gray-100">
+    <div className="p-6 grid grid-cols-[1fr_300px] gap-6">
 
       {/* ================= 좌측 목록 ================= */}
-      <div className="border rounded-lg p-4 bg-white dark:bg-gray-900 shadow-md dark:border-gray-700">
+      <div className="border rounded-lg p-4 bg-white dark:bg-gray-900 shadow-md">
         <h2 className="text-lg font-bold mb-4">거래처 목록</h2>
 
-        {/* 검색 */}
-        <div className="flex gap-3 mb-4">
-          <input
-            placeholder="거래처명 검색"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            className="border p-2 rounded w-40 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-          />
-
-          <select
-            value={useFilter}
-            onChange={(e) => setUseFilter(e.target.value)}
-            className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-          >
-            <option value="ALL">전체</option>
-            <option value="Y">사용</option>
-            <option value="N">미사용</option>
-          </select>
-        </div>
-
-        {/* 목록 */}
-        <div className="overflow-auto max-h-[600px] border rounded dark:border-gray-700">
+        <div className="overflow-auto max-h-[600px] border rounded">
           <table className="w-full text-sm">
             <thead className="bg-gray-100 dark:bg-gray-800 sticky top-0">
-              <tr className="text-gray-900 dark:text-gray-100">
-                <th className="border p-2 dark:border-gray-700">코드</th>
-                <th className="border p-2 dark:border-gray-700">거래처명</th>
-                <th className="border p-2 dark:border-gray-700">사업자번호</th>
-                <th className="border p-2 dark:border-gray-700">대표자명</th>
-                <th className="border p-2 text-center dark:border-gray-700">부가세</th>
-                <th className="border p-2 dark:border-gray-700">입금자</th>
-                <th className="border p-2 text-right dark:border-gray-700">단가</th>
-                <th className="border p-2 text-center dark:border-gray-700">사용</th>
+              <tr>
+                <th className="border p-2">코드</th>
+                <th className="border p-2">거래처명</th>
+                <th className="border p-2">사업자번호</th>
+                <th className="border p-2">대표자명</th>
+                <th className="border p-2">매장구분</th>
+                <th className="border p-2 text-center">부가세</th>
+                <th className="border p-2">입금자</th>
+                <th className="border p-2 text-right">단가</th>
+                <th className="border p-2 text-right">배송비</th>
+                <th className="border p-2 text-center">사용</th>
               </tr>
             </thead>
 
@@ -203,73 +185,82 @@ export default function DeliveryPage() {
                   onClick={() => onRowClick(p)}
                   className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                 >
-                  <td className="border p-2 dark:border-gray-700">{p.partnerCode}</td>
-                  <td className="border p-2 dark:border-gray-700">{p.partnerName}</td>
-                  <td className="border p-2 dark:border-gray-700">{p.bizRegNo ?? "-"}</td>
-                  <td className="border p-2 dark:border-gray-700">{p.ownerName ?? "-"}</td>
-                  <td className="border p-2 text-center dark:border-gray-700">{p.vatYn}</td>
-                  <td className="border p-2 dark:border-gray-700">{p.payerName ?? "-"}</td>
-                  <td className="border p-2 text-right dark:border-gray-700">
+                  <td className="border p-2">{p.partnerCode}</td>
+                  <td className="border p-2">{p.partnerName}</td>
+                  <td className="border p-2">{p.bizRegNo ?? "-"}</td>
+                  <td className="border p-2">{p.ownerName ?? "-"}</td>
+                  <td className="border p-2">{displayStoreType(p.storeType)}</td>
+                  <td className="border p-2 text-center">{p.vatYn}</td>
+                  <td className="border p-2">{p.payerName ?? "-"}</td>
+                  <td className="border p-2 text-right">
                     {p.deposits?.[0]?.expectedAmount
                       ? Number(p.deposits[0].expectedAmount).toLocaleString()
                       : "-"}
                   </td>
-                  <td className="border p-2 text-center dark:border-gray-700">
+                  <td className="border p-2 text-right">
+                    {p.deliveryFee
+                      ? Number(p.deliveryFee).toLocaleString()
+                      : "-"}
+                  </td>
+                  <td className="border p-2 text-center">
                     {p.delYn === "N" ? "Y" : "N"}
                   </td>
                 </tr>
               ))}
-
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="text-center p-4 text-gray-400 dark:text-gray-500">
-                    데이터 없음
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* ================= 우측 입력 ================= */}
-      <div className="border rounded-lg p-4 bg-white dark:bg-gray-900 shadow-md dark:border-gray-700">
+      <div className="border rounded-lg p-4 bg-white dark:bg-gray-900 shadow-md">
         <h2 className="text-lg font-bold mb-3">거래처 등록/수정</h2>
 
         <div className="space-y-2">
 
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={storeType}
+              onChange={(e) => setStoreType(e.target.value)}
+              className="border p-1.5 rounded w-full dark:bg-gray-800"
+            >
+              <option value="BAG">마대</option>
+              <option value="MONTH">월별</option>
+            </select>
+
+            <input
+              value={partnerCode}
+              disabled
+              placeholder="자동채번"
+              className="border p-1.5 rounded w-full bg-gray-100 dark:bg-gray-800"
+            />
+          </div>
+
           <input
-            value={partnerCode}
-            disabled
-            placeholder="자동채번"
-            className="border p-1.5 rounded w-full bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+            value={ownerName}
+            onChange={(e) => setOwnerName(e.target.value)}
+            placeholder="대표자명"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           />
 
           <input
             value={partnerName}
             onChange={(e) => setPartnerName(e.target.value)}
             placeholder="거래처명"
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           />
 
           <input
             value={bizRegNo}
             onChange={(e) => setBizRegNo(e.target.value)}
             placeholder="사업자 등록번호"
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-          />
-
-          <input
-            value={ownerName}
-            onChange={(e) => setOwnerName(e.target.value)}
-            placeholder="대표자명"
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           />
 
           <select
             value={vatYn}
             onChange={(e) => setVatYn(e.target.value)}
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           >
             <option value="Y">부가세 적용</option>
             <option value="N">부가세 미적용</option>
@@ -279,41 +270,50 @@ export default function DeliveryPage() {
             value={payerName}
             onChange={(e) => setPayerName(e.target.value)}
             placeholder="입금자명"
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           />
 
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="전화번호"
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           />
 
           <input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="주소"
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           />
 
           <textarea
             value={remark}
             onChange={(e) => setRemark(e.target.value)}
             placeholder="비고"
-            className="border p-1.5 rounded w-full h-16 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full h-16 dark:bg-gray-800"
           />
 
-          <input
-            value={expectedAmount}
-            onChange={(e) => handleAmountChange(e.target.value)}
-            placeholder="단가"
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-          />
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              value={expectedAmount}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              placeholder="단가"
+              className="border p-1.5 rounded w-full dark:bg-gray-800"
+            />
+
+            <input
+              value={deliveryFee}
+              onChange={(e) => handleDeliveryFeeChange(e.target.value)}
+              placeholder="배송비"
+              className="border p-1.5 rounded w-full dark:bg-gray-800"
+            />
+          </div>
 
           <select
             value={useYn}
             onChange={(e) => setUseYn(e.target.value)}
-            className="border p-1.5 rounded w-full dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border p-1.5 rounded w-full dark:bg-gray-800"
           >
             <option value="Y">사용</option>
             <option value="N">미사용</option>

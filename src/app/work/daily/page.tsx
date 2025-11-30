@@ -2,383 +2,328 @@
 
 import { useEffect, useState } from "react";
 
-/* ================================
-   타입 정의
-================================ */
-type Deposit = {
-  expectedAmount: number;
-};
-
+/* =========================================
+    타입 정의
+========================================= */
 type Partner = {
   id: number;
   partnerCode: string;
   partnerName: string;
-  bizRegNo?: string;
-  vatYn?: string;
-  remark?: string;
-  deposits?: Deposit[];
+  delYn: string;
+  storeType: string; // ⭐ 추가됨
 };
 
-type DailyLog = {
-  id: number;
+type DailyCell = {
+  partnerId: number;
   workDate: string;
   qty: number;
-  unitPrice: number;
-  totalAmount: number;
 };
 
-/* ================================
-   페이지 시작
-================================ */
+/* =========================================
+    메인 페이지
+========================================= */
 export default function DailyWorkPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
-  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const [yearMonth, setYearMonth] = useState("");
 
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [days, setDays] = useState<string[]>([]);
+  const [cells, setCells] = useState<DailyCell[]>([]);
 
-  const [workDate, setWorkDate] = useState("");
-  const [qty, setQty] = useState("");
-  const [unitPrice, setUnitPrice] = useState("");
-
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-  const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
-
-  /* ========== 계산 ========== */
-  const total =
-    Number(unitPrice.replace(/,/g, "")) * Number(qty || 0);
-
-  /* ========== 콤마 처리 함수 ========== */
-  const formatComma = (val: string) => {
-    if (!val) return "";
-    return Number(val.replace(/,/g, "")).toLocaleString();
-  };
-
-  const handleUnitPriceChange = (value: string) => {
-    const onlyNumber = value.replace(/[^\d]/g, "");
-    setUnitPrice(formatComma(onlyNumber));
-  };
-
-  const handleQtyChange = (value: string) => {
-    const onlyNumber = value.replace(/[^\d]/g, "");
-    setQty(onlyNumber);
-  };
-
-  /* ========== 거래처 목록 조회 ========== */
+  /* =========================================
+      거래처 목록 로드 (사용여부 Y만)
+  ========================================== */
   const loadPartners = async () => {
     const res = await fetch("/api/partners/list");
     const data = await res.json();
-    if (data.success) setPartners(data.partners);
+
+    if (data.success) {
+      const filtered = data.partners.filter((p: any) => p.delYn === "N");
+
+      setPartners(
+        filtered.map((p: any) => ({
+          id: p.id,
+          partnerCode: p.partnerCode,
+          partnerName: p.partnerName,
+          delYn: p.delYn,
+          storeType: p.storeType, // ⭐ 중요
+        }))
+      );
+    }
   };
 
-  /* ========== 로그 목록 조회 ========== */
-  const loadLogs = async (partnerId: number, from: string, to: string) => {
-    const res = await fetch("/api/daily/list", {
+  /* =========================================
+      선택 월 → 날짜 목록 생성
+  ========================================== */
+  const generateDays = (ym: string) => {
+    const [year, month] = ym.split("-").map(Number);
+    const last = new Date(year, month, 0).getDate();
+
+    const list: string[] = [];
+    for (let d = 1; d <= last; d++) {
+      const dd = String(d).padStart(2, "0");
+      list.push(`${ym}-${dd}`);
+    }
+    return list;
+  };
+
+  /* =========================================
+      해당 월 데이터 불러오기
+  ========================================== */
+  const loadMonthData = async (ym: string, partnerList: Partner[]) => {
+    if (!ym || partnerList.length === 0) return;
+
+    const res = await fetch("/api/daily/list-month", {
       method: "POST",
-      body: JSON.stringify({ partnerId, from, to }),
+      body: JSON.stringify({ yearMonth: ym }),
     });
 
     const data = await res.json();
-    if (data.success) setLogs(data.logs);
+
+    const days = generateDays(ym);
+    const map = new Map<string, number>();
+
+    if (data.success) {
+      data.rows.forEach((row: any) =>
+        map.set(`${row.partnerId}_${row.workDate}`, row.qty)
+      );
+    }
+
+    const fullCells: DailyCell[] = [];
+    for (const d of days) {
+      for (const p of partnerList) {
+        const key = `${p.id}_${d}`;
+        const qty = map.get(key) ?? 0;
+
+        fullCells.push({ partnerId: p.id, workDate: d, qty });
+      }
+    }
+
+    setCells(fullCells);
   };
 
-  /* ========== 최초 실행 ========== */
+  /* =========================================
+      초기 실행
+  ========================================== */
   useEffect(() => {
     loadPartners();
 
     const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-
-    setFromDate(`${yyyy}-${mm}-01`);
-    setToDate(today.toISOString().slice(0, 10));
-    setWorkDate(today.toISOString().slice(0, 10));
+    setYearMonth(today.toISOString().slice(0, 7));
   }, []);
 
-  /* ========== 거래처 선택 ========== */
-  const onSelectPartner = (code: string) => {
-    const p = partners.find((x) => x.partnerCode === code) || null;
-    setSelectedPartner(p);
-    setSelectedLogId(null);
-    setQty("");
+  /* =========================================
+      yearMonth 변경 시 자동 갱신
+  ========================================== */
+  useEffect(() => {
+    if (!yearMonth || partners.length === 0) return;
 
-    if (p) {
-      const lastPrice = p.deposits?.[0]?.expectedAmount ?? 0;
-      setUnitPrice(lastPrice.toLocaleString());
-      loadLogs(p.id, fromDate, toDate);
-    }
+    setDays(generateDays(yearMonth));
+    loadMonthData(yearMonth, partners);
+  }, [yearMonth, partners]);
+
+  /* =========================================
+      셀 수정
+  ========================================== */
+  const updateCell = (partnerId: number, workDate: string, value: string) => {
+    const qty = Number(value.replace(/[^\d]/g, "")) || 0;
+
+    setCells((prev) =>
+      prev.map((c) =>
+        c.partnerId === partnerId && c.workDate === workDate
+          ? { ...c, qty }
+          : c
+      )
+    );
   };
 
-  /* ========== 행 클릭 → 수정 모드 ========== */
-  const onClickLog = (log: DailyLog) => {
-    setSelectedLogId(log.id);
-    setWorkDate(log.workDate.slice(0, 10));
-    setQty(String(log.qty));
-    setUnitPrice(log.unitPrice.toLocaleString());
-  };
+  /* =========================================
+      월 전체 저장
+  ========================================== */
+  const saveMonth = async () => {
+    if (cells.length === 0) return alert("저장할 데이터가 없습니다.");
 
-  /* ========== 저장 (INSERT/UPDATE) ========== */
-  const saveDaily = async () => {
-    if (!selectedPartner) return alert("거래처를 선택하세요.");
-    if (!workDate) return alert("일자를 입력하세요.");
-    if (!qty) return alert("수량을 입력하세요.");
-
-    const body = {
-      id: selectedLogId,
-      partnerId: selectedPartner.id,
-      workDate,
-      qty: Number(qty),
-      unitPrice: Number(unitPrice.replace(/,/g, "")),
-      totalAmount: total,
-    };
-
-    const res = await fetch("/api/daily/save", {
+    const res = await fetch("/api/daily/save-month", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        yearMonth,
+        rows: cells,
+      }),
     });
 
     const data = await res.json();
-
     if (data.success) {
       alert("저장되었습니다.");
-      setSelectedLogId(null);
-      setQty("");
-      loadLogs(selectedPartner.id, fromDate, toDate);
+    } else {
+      alert("저장 실패");
     }
   };
 
-  /* ========== 삭제 ========== */
-  const deleteDaily = async () => {
-    if (!selectedLogId) return;
-    if (!confirm("정말 삭제하시겠습니까?")) return;
-
-    await fetch("/api/daily/delete", {
-      method: "POST",
-      body: JSON.stringify({ id: selectedLogId }),
-    });
-
-    alert("삭제되었습니다.");
-    setSelectedLogId(null);
-    setQty("");
-
-    if (selectedPartner)
-      loadLogs(selectedPartner.id, fromDate, toDate);
+  /* =========================================
+      요일 계산
+  ========================================== */
+  const getDayName = (dateStr: string) => {
+    const d = new Date(dateStr).getDay();
+    return ["(일)", "(월)", "(화)", "(수)", "(목)", "(금)", "(토)"][d];
   };
 
-  /* ========== 신규 ========== */
-  const resetForm = () => {
-    const today = new Date().toISOString().slice(0, 10);
+  const isSunday = (dateStr: string) => new Date(dateStr).getDay() === 0;
 
-    setSelectedLogId(null);
-    setWorkDate(today);
-    setQty("");
+  /* =========================================
+      거래처별 월 합계
+  ========================================== */
+  const calcPartnerSum = (partnerId: number) =>
+    cells
+      .filter((c) => c.partnerId === partnerId)
+      .reduce((acc, cur) => acc + cur.qty, 0);
 
-    if (selectedPartner) {
-      const lastPrice = selectedPartner?.deposits?.[0]?.expectedAmount ?? 0;
-      setUnitPrice(lastPrice.toLocaleString());
+  /* =========================================
+      storeType 별 헤더 색상
+  ========================================== */
+  const headerBg = (storeType: string) => {
+    if (storeType === "BAG") {
+      return "bg-blue-200";   // 마대
     }
+    if (storeType === "MONTH") {
+      return "bg-green-200";  // 월별
+    }
+    return "bg-gray-100";
   };
 
-  /* ================================
-         UI 렌더링 시작
-  ================================= */
+
+  /* =========================================
+      렌더링
+  ========================================== */
   return (
     <div className="p-6 space-y-6">
 
-      {/* =================== 상단 조건 =================== */}
-      <div className="border p-4 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700 flex flex-wrap gap-4 items-end">
-
-        {/* 거래처 */}
+      {/* ======== 조회 영역 ======== */}
+      <div className="border p-4 rounded-lg bg-white flex items-end gap-4">
         <div>
-          <p className="font-semibold mb-1">거래처</p>
-          <select
-            value={selectedPartner?.partnerCode || ""}
-            onChange={(e) => onSelectPartner(e.target.value)}
-            className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700"
-          >
-            <option value="">선택하세요</option>
-            {partners.map((p) => (
-              <option key={p.partnerCode} value={p.partnerCode}>
-                {p.partnerName} ({p.partnerCode})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* From */}
-        <div>
-          <p className="font-semibold mb-1">From</p>
+          <p className="font-semibold mb-1">조회 월</p>
           <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700"
-          />
-        </div>
-
-        {/* To */}
-        <div>
-          <p className="font-semibold mb-1">To</p>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700"
+            type="month"
+            value={yearMonth}
+            onChange={(e) => setYearMonth(e.target.value)}
+            className="border p-2 rounded"
           />
         </div>
 
         <button
-          onClick={() =>
-            selectedPartner && loadLogs(selectedPartner.id, fromDate, toDate)
-          }
+          onClick={() => loadMonthData(yearMonth, partners)}
           className="bg-green-600 text-white px-4 py-2 rounded"
         >
-          조회
+          조회하기
+        </button>
+
+        <button
+          onClick={saveMonth}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          저장하기
         </button>
       </div>
 
-      {/* =================== 입력 영역 =================== */}
-      {selectedPartner && (
-        <div className="border p-4 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700 space-y-4">
+      {/* ======== 합계 ======== */}
+      <div className="overflow-x-auto border rounded-lg bg-white p-4">
+        <table className="min-w-max text-sm">
+          <thead>
+            <tr>
+              <th className="border px-3 py-2 bg-gray-100 sticky left-0 z-20">
+                거래처별 합계
+              </th>
 
-          <div className="flex gap-4 flex-wrap">
+              {partners.map((p) => (
+                <th
+                  key={p.id}
+                  className={`border px-3 py-2 text-center ${headerBg(
+                    p.storeType
+                  )}`}
+                >
+                  {p.partnerName}
+                </th>
+              ))}
+            </tr>
+          </thead>
 
-            {/* 일자 */}
-            <div>
-              <p className="font-semibold mb-1">일자</p>
-              <input
-                type="date"
-                value={workDate}
-                onChange={(e) => setWorkDate(e.target.value)}
-                className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700"
-              />
-            </div>
+          <tbody>
+            <tr>
+              <td className="border px-3 py-2 sticky left-0 bg-white font-semibold z-10">
+                합계
+              </td>
 
-            {/* 수량 */}
-            <div>
-              <p className="font-semibold mb-1">수량</p>
-              <input
-                value={qty}
-                onChange={(e) => handleQtyChange(e.target.value)}
-                className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700"
-                placeholder="수량 입력"
-              />
-            </div>
+              {partners.map((p) => (
+                <td key={p.id} className="border px-3 py-2 text-right">
+                  {calcPartnerSum(p.id).toLocaleString()}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-            {/* 단가 */}
-            <div>
-              <p className="font-semibold mb-1">단가</p>
-              <input
-                value={unitPrice}
-                onChange={(e) => handleUnitPriceChange(e.target.value)}
-                className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700"
-              />
-            </div>
-          </div>
+      {/* ======== 본 그리드 ======== */}
+      <div className="overflow-auto border rounded-lg bg-white p-4">
+        <table className="min-w-max border-collapse text-sm">
+          <thead>
+            <tr>
+              <th className="border px-3 py-2 bg-gray-100 sticky left-0 z-20">
+                일자
+              </th>
 
-          <p className="text-xl font-bold">
-            총액: {total.toLocaleString()}원
-          </p>
+              {partners.map((p) => (
+                <th
+                  key={p.id}
+                  className={`border px-3 py-2 text-center ${headerBg(
+                    p.storeType
+                  )}`}
+                >
+                  {p.partnerName}
+                </th>
+              ))}
+            </tr>
+          </thead>
 
-          <div className="flex gap-3">
-            <button
-              onClick={saveDaily}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-            >
-              저장하기
-            </button>
+          <tbody>
+            {days.map((day) => {
+              const sunday = isSunday(day);
+              const bg = sunday ? "bg-[#f8e7c7]" : "";
 
-            {selectedLogId && (
-              <button
-                onClick={deleteDaily}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                삭제하기
-              </button>
-            )}
+              return (
+                <tr key={day} className={bg}>
+                  <td
+                    className={`border px-3 py-2 sticky left-0 font-semibold z-10 ${sunday ? "bg-[#f8e7c7]" : "bg-white"
+                      }`}
+                  >
+                    {day} {getDayName(day)}
+                  </td>
 
-            <button
-              onClick={resetForm}
-              className="bg-gray-300 text-black px-4 py-2 rounded dark:bg-gray-700 dark:text-white"
-            >
-              신규
-            </button>
-          </div>
+                  {partners.map((p) => {
+                    const cell = cells.find(
+                      (c) => c.partnerId === p.id && c.workDate === day
+                    );
 
-        </div>
-      )}
-
-      {/* =================== 그리드 =================== */}
-      {selectedPartner && (
-        <div className="border p-4 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700">
-
-          <h3 className="text-lg font-bold mb-4">일일 업무 기록</h3>
-
-          {/* sum 계산 */}
-          {(() => {
-            var sumQty = logs.reduce((acc, cur) => acc + cur.qty, 0);
-            var sumTotal = logs.reduce((acc, cur) => acc + cur.totalAmount, 0);
-
-            return (
-              <>
-                {/* 그리드 */}
-                <div className="max-h-[500px] overflow-y-auto border rounded-md">
-
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10">
-                      <tr>
-                        <th className="border p-2 dark:border-gray-700">일자</th>
-                        <th className="border p-2 dark:border-gray-700">거래처명</th>
-                        <th className="border p-2 dark:border-gray-700">사업자번호</th>
-                        <th className="border p-2 text-center dark:border-gray-700">부가세</th>
-                        <th className="border p-2 dark:border-gray-700">비고</th>
-                        <th className="border p-2 text-right dark:border-gray-700">수량</th>
-                        <th className="border p-2 text-right dark:border-gray-700">단가</th>
-                        <th className="border p-2 text-right dark:border-gray-700">총액</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {logs.map((log) => (
-                        <tr
-                          key={log.id}
-                          onClick={() => onClickLog(log)}
-                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                          <td className="border p-2 dark:border-gray-700">{log.workDate.slice(0, 10)}</td>
-                          <td className="border p-2 dark:border-gray-700">{selectedPartner.partnerName}</td>
-                          <td className="border p-2 dark:border-gray-700">{selectedPartner.bizRegNo ?? "-"}</td>
-                          <td className="border p-2 text-center dark:border-gray-700">{selectedPartner.vatYn}</td>
-                          <td className="border p-2 dark:border-gray-700">{selectedPartner.remark ?? "-"}</td>
-                          <td className="border p-2 text-right dark:border-gray-700">{log.qty.toLocaleString()}</td>
-                          <td className="border p-2 text-right dark:border-gray-700">{log.unitPrice.toLocaleString()}</td>
-                          <td className="border p-2 text-right dark:border-gray-700">{log.totalAmount.toLocaleString()}</td>
-                        </tr>
-                      ))}
-
-                      {logs.length === 0 && (
-                        <tr>
-                          <td colSpan={8} className="text-center p-4 text-gray-400 dark:text-gray-500">
-                            데이터 없음
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* ================= 합계 행 ================= */}
-                <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-md flex justify-end gap-10 text-sm font-semibold">
-                  <div>총 수량: {sumQty.toLocaleString()}</div>
-                  <div>총 금액: {sumTotal.toLocaleString()} 원</div>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
-
+                    return (
+                      <td key={`${p.id}_${day}`} className="border p-0">
+                        <input
+                          type="text"
+                          value={cell?.qty ?? ""}
+                          onChange={(e) =>
+                            updateCell(p.id, day, e.target.value)
+                          }
+                          className={`w-full p-2 text-right ${sunday ? "bg-[#f8e7c7]" : "bg-white"
+                            }`}
+                          placeholder="0"
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

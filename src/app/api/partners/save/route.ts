@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -12,13 +11,15 @@ export async function POST(req: Request) {
       partnerCode,
       partnerName,
       bizRegNo,
-      ownerName,   // ⭐ 추가됨
+      ownerName,
       vatYn,
       payerName,
       phone,
       address,
       remark,
       expectedAmount,
+      storeType,        // ⭐ 추가됨
+      deliveryFee,      // ⭐ 추가됨
       delYn,
     } = body;
 
@@ -28,7 +29,6 @@ export async function POST(req: Request) {
 
     if (!partner) {
       // 신규
-      
       partner = await prisma.partner.create({
         data: {
           partnerCode,
@@ -40,13 +40,16 @@ export async function POST(req: Request) {
           phone,
           address,
           remark,
+
+          // ⭐ 신규 → 배송비, 매장구분 추가
+          storeType,
+          deliveryFee: deliveryFee ? Number(deliveryFee) : 0,
+
           delYn,
         },
       });
     } else {
       // 수정
-
-
       partner = await prisma.partner.update({
         where: { partnerCode },
         data: {
@@ -58,6 +61,11 @@ export async function POST(req: Request) {
           phone,
           address,
           remark,
+
+          // ⭐ 수정할 때도 반영
+          storeType,
+          deliveryFee: deliveryFee ? Number(deliveryFee) : 0,
+
           delYn,
         },
       });
