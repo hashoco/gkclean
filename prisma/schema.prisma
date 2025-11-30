@@ -8,22 +8,22 @@ generator client {
 }
 
 model Inquiry {
-  @@map("inquiry")   // ★ 여기가 핵심 (테이블 이름 매핑)
 
-  id        Int      @id @default(autoincrement())
-  name      String
-  phone     String
-  subject   String
-  message   String
-  sent_dt   DateTime @default(now())
+  id      Int      @id @default(autoincrement())
+  name    String
+  phone   String
+  subject String
+  message String
+  sent_dt DateTime @default(now())
+
+  @@map("inquiry") // ★ 여기가 핵심 (테이블 이름 매핑)
 }
 
 model User {
-  
   id        String   @id @default(uuid())
-  loginId   String   @unique     // 로그인 아이디
-  email     String   @unique     // 비밀번호 찾기용
-  password  String               // 해시 저장
+  loginId   String   @unique // 로그인 아이디
+  email     String   @unique // 비밀번호 찾기용
+  password  String // 해시 저장
   name      String
   isAdmin   String   @default("N") // 관리자
   createdAt DateTime @default(now())
@@ -43,29 +43,42 @@ model Attendance {
 }
 
 model Partner {
-  id        Int      @id @default(autoincrement())
-  partnerCode String @unique
+  id          Int      @id @default(autoincrement())
+  partnerCode String   @unique
   partnerName String
-  vatYn     String   // Y/N
-  payerName String?
-  phone     String?
-  address   String?
-  remark    String?
-  delYn     String   @default("N")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  vatYn       String
+  payerName   String?
+  phone       String?
+  address     String?
+  remark      String?
+  delYn       String   @default("N")
+  bizRegNo    String?  @map("biz_reg_no")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ownerName String? @map("owner_name")
 
   deposits  PartnerDeposit[]
+  dailyLogs DailyWorkLog[] // ★ 반드시 필요
 }
-
 
 model PartnerDeposit {
-  id        Int      @id @default(autoincrement())
-  partnerId Int
+  id             Int      @id @default(autoincrement())
+  partnerId      Int
   expectedAmount Int
-  createdAt DateTime @default(now())
+  createdAt      DateTime @default(now())
 
-  partner   Partner  @relation(fields: [partnerId], references: [id])
+  partner Partner @relation(fields: [partnerId], references: [id])
 }
 
+model DailyWorkLog {
+  id          Int      @id @default(autoincrement())
+  partnerId   Int
+  partner     Partner  @relation(fields: [partnerId], references: [id])
+  workDate    DateTime
+  qty         Int
+  unitPrice   Int
+  totalAmount Int
+  createdAt   DateTime @default(now())
 
+  @@map("DailyWorkLog")
+}
