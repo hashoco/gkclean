@@ -24,6 +24,7 @@ export async function POST(req: Request) {
 
     if (!partner) {
       // 신규
+      
       partner = await prisma.partner.create({
         data: {
           partnerCode,
