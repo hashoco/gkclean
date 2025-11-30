@@ -41,6 +41,8 @@ export async function POST(req: Request) {
       });
     } else {
       // 수정
+
+      
       partner = await prisma.partner.update({
         where: { partnerCode },
         data: {
