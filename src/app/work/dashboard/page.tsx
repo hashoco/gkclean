@@ -78,7 +78,7 @@ export default function DashboardPage() {
 
         {/* 근태현황 (막대차트) */}
         <div className="border p-5 rounded-xl bg-white dark:bg-gray-900 dark:border-gray-700 shadow-sm">
-          <h2 className="text-lg font-bold mb-4">근태현황 (주간 근무시간)</h2>
+          <h2 className="text-lg font-bold mb-4">근태현황)</h2>
 
           <BarChart width={450} height={250} data={attendanceData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
