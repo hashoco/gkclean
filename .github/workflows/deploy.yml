@@ -30,16 +30,20 @@ jobs:
             git clone https://github.com/hashoco/gkclean.git
             cd gkclean
 
-            echo "📌 3) Install dependencies"
+            echo "📌 3) Create .env file from GitHub Secret"
+            echo "${{ secrets.ENV_FILE }}" > .env
+            echo "✅ .env created"
+
+            echo "📌 4) Install dependencies"
             npm install --force
 
-            echo "📌 4) Prisma generate"
+            echo "📌 5) Prisma generate"
             npx prisma generate
 
-            echo "📌 5) Build project"
+            echo "📌 6) Build project"
             npm run build
 
-            echo "📌 6) Restart PM2 with production script"
+            echo "📌 7) Restart PM2 with production script"
             pm2 delete gkclean || true
             pm2 start npm --name gkclean -- run start:prod
 
