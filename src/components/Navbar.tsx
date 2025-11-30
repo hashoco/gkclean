@@ -13,7 +13,7 @@ export const Navbar = () => {
 
   const navigation = ["회사소개", "가격안내", "배송지역", "서비스문의"];
 
-  // === 업무지원 메뉴 (카테고리 + 항목) ===
+  // === 업무지원 메뉴 (관리자 전용) ===
   const workMenus = [
     {
       category: "업무지원 홈",
@@ -25,28 +25,26 @@ export const Navbar = () => {
     },
     {
       category: "공정관리",
-      items: [{ name: "거래처관리", href: "/work/delivery" },
-      { name: "일일업무일지", href: "/work/daily" },
+      items: [
+        { name: "거래처관리", href: "/work/delivery" },
+        { name: "일일업무일지", href: "/work/daily" },
       ],
-
     },
     {
       category: "회계관리",
       items: [{ name: "세금계산서현황(엑셀)", href: "/work/tax" }],
-
     },
-  ];
-
-  if (session?.user?.isAdmin === "Y") {
-    workMenus.push({
+    {
       category: "관리자 기능",
       items: [{ name: "관리자 설정", href: "/work/admin" }],
-    });
-  }
+    },
+  ];
 
   const toggleCategory = (cat: string) => {
     setOpenCategory((prev) => (prev === cat ? null : cat));
   };
+
+  const isAdmin = session?.user?.isAdmin === "Y";
 
   return (
     <div className="w-full border-b border-gray-100 dark:border-gray-800">
@@ -71,10 +69,10 @@ export const Navbar = () => {
                     menu === "회사소개"
                       ? "/company"
                       : menu === "가격안내"
-                        ? "/pricing"
-                        : menu === "배송지역"
-                          ? "/area"
-                          : "/contact"
+                      ? "/pricing"
+                      : menu === "배송지역"
+                      ? "/area"
+                      : "/contact"
                   }
                   className="text-lg text-gray-800 dark:text-gray-200 hover:text-green-600"
                 >
@@ -83,8 +81,8 @@ export const Navbar = () => {
               </li>
             ))}
 
-            {/* ===== 업무지원 드롭다운 (아코디언 포함) ===== */}
-            {session && (
+            {/* ===== 업무지원 드롭다운 (관리자 전용) ===== */}
+            {isAdmin && (
               <Menu as="div" className="relative">
                 <Menu.Button className="text-lg text-gray-800 dark:text-gray-200 hover:text-green-600 cursor-pointer font-semibold">
                   업무지원 ▾
@@ -101,7 +99,6 @@ export const Navbar = () => {
                   {workMenus.map((group, idx) => (
                     <div key={idx} className="px-4">
 
-                      {/* 카테고리 버튼 */}
                       <button
                         onClick={() => toggleCategory(group.category)}
                         className="w-full flex justify-between items-center
@@ -118,17 +115,17 @@ export const Navbar = () => {
                         </span>
                       </button>
 
-                      {/* 펼칠 영역 */}
                       <div
-                        className={`overflow-hidden transition-all duration-300 ${openCategory === group.category ? "max-h-48" : "max-h-0"
-                          }`}
+                        className={`overflow-hidden transition-all duration-300 ${
+                          openCategory === group.category ? "max-h-48" : "max-h-0"
+                        }`}
                       >
                         {group.items.map((item, subIdx) => (
                           <Menu.Item key={subIdx}>
                             {({ close }) => (
                               <Link
                                 href={item.href}
-                                onClick={() => close()}   // ★ 여기 추가됨 (드롭다운 자동 닫기)
+                                onClick={() => close()}
                                 className="block text-sm text-gray-600 dark:text-gray-300
                                           py-2 pl-6 pr-3
                                           rounded-md
@@ -143,7 +140,6 @@ export const Navbar = () => {
                         ))}
                       </div>
 
-                      {/* 구분선 */}
                       {idx !== workMenus.length - 1 && (
                         <div className="my-3 border-b border-gray-200 dark:border-gray-700"></div>
                       )}
@@ -207,10 +203,10 @@ export const Navbar = () => {
                         item === "회사소개"
                           ? "/company"
                           : item === "가격안내"
-                            ? "/pricing"
-                            : item === "배송지역"
-                              ? "/area"
-                              : "/contact"
+                          ? "/pricing"
+                          : item === "배송지역"
+                          ? "/area"
+                          : "/contact"
                       }
                       onClick={() => close()}
                       className="block py-3 text-gray-700 dark:text-gray-300 hover:text-green-600"
@@ -219,7 +215,8 @@ export const Navbar = () => {
                     </Link>
                   ))}
 
-                  {session && (
+                  {/* 업무지원 (관리자 전용) */}
+                  {isAdmin && (
                     <>
                       <p className="mt-4 mb-2 text-gray-700 dark:text-gray-300 font-semibold">
                         업무지원
@@ -240,8 +237,9 @@ export const Navbar = () => {
                           </button>
 
                           <div
-                            className={`overflow-hidden transition-all duration-300 ${openCategory === group.category ? "max-h-40" : "max-h-0"
-                              }`}
+                            className={`overflow-hidden transition-all duration-300 ${
+                              openCategory === group.category ? "max-h-40" : "max-h-0"
+                            }`}
                           >
                             {group.items.map((item, subIdx) => (
                               <Link

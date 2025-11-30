@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 export default function TaxInvoicePage() {
     const [month, setMonth] = useState(""); // yyyy-MM
     const [list, setList] = useState<any[]>([]);
+    const sysdate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
     // 페이지 로드시: 기본 전월 세팅
     useEffect(() => {
@@ -51,14 +52,15 @@ export default function TaxInvoicePage() {
 
         const excelData = list.map((row) => ({
             "전자(세금계산서) 등록 종류": "01",
-            "작성일자": row.workDate,
-            "공급자등록번호": "1234567890",        // ⭐ 여기는 너 회사 사업자등록번호 입력
+            "작성일자": sysdate,
+            "공급자등록번호": "4236100897",        // ⭐ 여기는 너 회사 사업자등록번호 입력
             "공급자 종사업번호": "",
-            "공급자성명": "GKClean",               // ⭐ 공급자 상호
+            "공급자상호": "GKClean",               // ⭐ 공급자 상호
+            "공급자성명": "양정섭",               // ⭐ 공급자 상호
             "공급자 사업장주소": "",
             "공급자 업태": "",
             "공급자 종목": "",
-            "공급자 이메일": "",
+            "공급자 이메일": "djena8637@naver.com",
             "공급받는자 등록번호": row.bizRegNo,
             "공급받는자 종사업번호": "",
             "공급받는자상호": row.partnerName,
