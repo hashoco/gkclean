@@ -26,9 +26,9 @@ jobs:
           echo "📌 1) Pull latest code"
           git pull
 
-          echo "📌 2) Clean cache"
+          echo "📌 2) Clean old caches"
           rm -rf .next
-          rm -rf node_modules/.cache
+          rm -rf node_modules/.cache || true
 
           echo "📌 3) Install dependencies"
           npm install
@@ -39,8 +39,8 @@ jobs:
           echo "📌 5) Build Next.js"
           npm run build
 
-          echo "📌 6) Restart PM2 with clean start"
+          echo "📌 6) Restart PM2 (correct npm execution)"
           pm2 delete gkclean || true
-          pm2 start "npm run start:prod" --name gkclean
+          pm2 start npm --name gkclean -- run start:prod
 
           echo "===== 🎉 Deployment Completed Successfully ====="
