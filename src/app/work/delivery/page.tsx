@@ -33,8 +33,24 @@ export default function DeliveryPage() {
     const data = await res.json();
     setLoading(false);
 
-    if (data.success) setPartners(data.partners);
-    else setPartners([]);
+    if (data.success) {
+      const sorted = data.partners.sort((a: any, b: any) => {
+        const aIsNum = /^[0-9]/.test(a.partnerName);
+        const bIsNum = /^[0-9]/.test(b.partnerName);
+
+        // 숫자가 먼저 오도록
+        if (aIsNum && !bIsNum) return -1;
+        if (!aIsNum && bIsNum) return 1;
+
+        // 둘 다 숫자거나 둘 다 한글이면 기본 가나다 정렬
+        return a.partnerName.localeCompare(b.partnerName, "ko");
+      });
+
+      setPartners(sorted);
+    } else {
+      setPartners([]);
+    }
+
   };
 
   useEffect(() => {
@@ -64,7 +80,7 @@ export default function DeliveryPage() {
 
   const displayStoreType = (t?: string) =>
     t === "BAG" ? "마대" :
-    t === "MONTH" ? "월별" : "-";
+      t === "MONTH" ? "월별" : "-";
 
   const savePartner = async () => {
     let code = partnerCode.trim();

@@ -42,7 +42,24 @@ export default function TaxInvoicePage() {
         });
 
         const data = await res.json();
-        setList(data.list ?? []);
+        if (data.list) {
+            const sorted = data.list.sort((a: any, b: any) => {
+                const aIsNum = /^[0-9]/.test(a.partnerName);
+                const bIsNum = /^[0-9]/.test(b.partnerName);
+
+                // 숫자가 먼저 오도록 정렬
+                if (aIsNum && !bIsNum) return -1;
+                if (!aIsNum && bIsNum) return 1;
+
+                // 둘 다 숫자거나 둘 다 한글이면 기본 문자열 정렬
+                return a.partnerName.localeCompare(b.partnerName, "ko");
+            });
+
+            setList(sorted);
+        } else {
+            setList([]);
+        }
+
     };
 
     // 🔵 vatYn 필터 적용된 데이터
