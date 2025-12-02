@@ -10,7 +10,8 @@ type Partner = {
   partnerCode: string;
   partnerName: string;
   delYn: string;
-  storeType: string; // ⭐ 추가됨
+  storeType: string;
+  unitPrice: number; // ⭐ 단가
 };
 
 type DailyCell = {
@@ -30,7 +31,7 @@ export default function DailyWorkPage() {
   const [cells, setCells] = useState<DailyCell[]>([]);
 
   /* =========================================
-      거래처 목록 로드 (사용여부 Y만)
+      거래처 목록 로드 (단가 포함)
   ========================================== */
   const loadPartners = async () => {
     const res = await fetch("/api/partners/list");
@@ -45,14 +46,15 @@ export default function DailyWorkPage() {
           partnerCode: p.partnerCode,
           partnerName: p.partnerName,
           delYn: p.delYn,
-          storeType: p.storeType, // ⭐ 중요
+          storeType: p.storeType,
+          unitPrice: p.deposits?.[0]?.expectedAmount ?? 0, // ⭐ 최신 deposit 단가 매핑
         }))
       );
     }
   };
 
   /* =========================================
-      선택 월 → 날짜 목록 생성
+      yearMonth → 날짜 생성
   ========================================== */
   const generateDays = (ym: string) => {
     const [year, month] = ym.split("-").map(Number);
@@ -67,7 +69,7 @@ export default function DailyWorkPage() {
   };
 
   /* =========================================
-      해당 월 데이터 불러오기
+      월 전체 데이터 로드
   ========================================== */
   const loadMonthData = async (ym: string, partnerList: Partner[]) => {
     if (!ym || partnerList.length === 0) return;
@@ -137,7 +139,43 @@ export default function DailyWorkPage() {
   };
 
   /* =========================================
-      월 전체 저장
+      방향키 이동 (기본 모드)
+  ========================================== */
+  const handleArrowKey = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    day: string,
+    partnerId: number
+  ) => {
+    const rowIndex = days.indexOf(day);
+    const colIndex = partners.findIndex((p) => p.id === partnerId);
+
+    let nextRow = rowIndex;
+    let nextCol = colIndex;
+
+    const arrowKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+    const isArrow = arrowKeys.includes(e.key);
+
+    if (!isArrow) return;   // ⭐ 숫자 입력/백스페이스 등 정상입력 허용
+
+    if (e.key === "ArrowUp") nextRow = Math.max(0, rowIndex - 1);
+    if (e.key === "ArrowDown") nextRow = Math.min(days.length - 1, rowIndex + 1);
+    if (e.key === "ArrowLeft") nextCol = Math.max(0, colIndex - 1);
+    if (e.key === "ArrowRight")
+      nextCol = Math.min(partners.length - 1, colIndex + 1);
+
+    const nextId = `cell-${days[nextRow]}-${partners[nextCol].id}`;
+    const nextEl = document.getElementById(nextId) as HTMLInputElement | null;
+
+    if (nextEl) {
+      e.preventDefault();  // ⭐ arrow key 이동만 막기
+      nextEl.focus();
+      nextEl.select();
+    }
+  };
+
+
+  /* =========================================
+      저장
   ========================================== */
   const saveMonth = async () => {
     if (cells.length === 0) return alert("저장할 데이터가 없습니다.");
@@ -152,11 +190,8 @@ export default function DailyWorkPage() {
     });
 
     const data = await res.json();
-    if (data.success) {
-      alert("저장되었습니다.");
-    } else {
-      alert("저장 실패");
-    }
+    if (data.success) alert("저장되었습니다.");
+    else alert("저장 실패");
   };
 
   /* =========================================
@@ -167,7 +202,8 @@ export default function DailyWorkPage() {
     return ["(일)", "(월)", "(화)", "(수)", "(목)", "(금)", "(토)"][d];
   };
 
-  const isSunday = (dateStr: string) => new Date(dateStr).getDay() === 0;
+  /* ⭐ 토요일 row 배경색 */
+  const isSaturday = (dateStr: string) => new Date(dateStr).getDay() === 6;
 
   /* =========================================
       거래처별 월 합계
@@ -178,18 +214,26 @@ export default function DailyWorkPage() {
       .reduce((acc, cur) => acc + cur.qty, 0);
 
   /* =========================================
-      storeType 별 헤더 색상
+      거래처별 금액 계산 (BAG / MONTH)
   ========================================== */
-  const headerBg = (storeType: string) => {
-    if (storeType === "BAG") {
-      return "bg-blue-200";   // 마대
+  const calcPartnerAmount = (partner: Partner) => {
+    const sum = calcPartnerSum(partner.id);
+
+    if (partner.storeType === "MONTH") {
+      return partner.unitPrice; // 수량 무관
     }
-    if (storeType === "MONTH") {
-      return "bg-green-200";  // 월별
-    }
-    return "bg-gray-100";
+
+    return sum * partner.unitPrice; // BAG
   };
 
+  /* =========================================
+      헤더 색상
+  ========================================== */
+  const headerBg = (storeType: string) => {
+    if (storeType === "BAG") return "bg-blue-200";
+    if (storeType === "MONTH") return "bg-green-200";
+    return "bg-gray-100";
+  };
 
   /* =========================================
       렌더링
@@ -224,13 +268,13 @@ export default function DailyWorkPage() {
         </button>
       </div>
 
-      {/* ======== 합계 ======== */}
+      {/* ======== 합계 / 금액 표시 ======== */}
       <div className="overflow-x-auto border rounded-lg bg-white p-4">
         <table className="min-w-max text-sm">
           <thead>
             <tr>
               <th className="border px-3 py-2 bg-gray-100 sticky left-0 z-20">
-                거래처별 합계
+                거래처별 합계 / 금액
               </th>
 
               {partners.map((p) => (
@@ -249,14 +293,22 @@ export default function DailyWorkPage() {
           <tbody>
             <tr>
               <td className="border px-3 py-2 sticky left-0 bg-white font-semibold z-10">
-                합계
+                합계 / 금액
               </td>
 
-              {partners.map((p) => (
-                <td key={p.id} className="border px-3 py-2 text-right">
-                  {calcPartnerSum(p.id).toLocaleString()}
-                </td>
-              ))}
+              {partners.map((p) => {
+                const sum = calcPartnerSum(p.id);
+                const amount = calcPartnerAmount(p);
+
+                return (
+                  <td key={p.id} className="border px-3 py-2 text-right">
+                    {sum.toLocaleString()} /{" "}
+                    <span className="font-semibold">
+                      {amount.toLocaleString()}
+                    </span>
+                  </td>
+                );
+              })}
             </tr>
           </tbody>
         </table>
@@ -286,13 +338,13 @@ export default function DailyWorkPage() {
 
           <tbody>
             {days.map((day) => {
-              const sunday = isSunday(day);
-              const bg = sunday ? "bg-[#f8e7c7]" : "";
+              const sat = isSaturday(day);
+              const bg = sat ? "bg-[#f8e7c7]" : "bg-white";
 
               return (
                 <tr key={day} className={bg}>
                   <td
-                    className={`border px-3 py-2 sticky left-0 font-semibold z-10 ${sunday ? "bg-[#f8e7c7]" : "bg-white"
+                    className={`border px-3 py-2 sticky left-0 font-semibold z-10 ${sat ? "bg-[#f8e7c7]" : "bg-white"
                       }`}
                   >
                     {day} {getDayName(day)}
@@ -306,12 +358,14 @@ export default function DailyWorkPage() {
                     return (
                       <td key={`${p.id}_${day}`} className="border p-0">
                         <input
+                          id={`cell-${day}-${p.id}`}
                           type="text"
                           value={cell?.qty ?? ""}
                           onChange={(e) =>
                             updateCell(p.id, day, e.target.value)
                           }
-                          className={`w-full p-2 text-right ${sunday ? "bg-[#f8e7c7]" : "bg-white"
+                          onKeyDown={(e) => handleArrowKey(e, day, p.id)}
+                          className={`w-full p-2 text-right ${sat ? "bg-[#f8e7c7]" : "bg-white"
                             }`}
                           placeholder="0"
                         />
