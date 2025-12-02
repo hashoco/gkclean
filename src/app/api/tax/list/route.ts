@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       include: {
         deposits: {
           orderBy: { createdAt: "desc" },
-          take: 1, // 최신 단가
+          take: 1,
         },
       },
     });
@@ -47,32 +47,23 @@ export async function POST(req: Request) {
     // ============================================================
     const result = logs.map((logRow) => {
       const partner = partners.find((p) => p.id === logRow.partnerId);
-
       if (!partner) return null;
 
-      const qtySum = logRow._sum.qty ?? 0; // BAG 계산에 사용
+      const qtySum = logRow._sum.qty ?? 0;
       const expectedAmount = partner.deposits?.[0]?.expectedAmount ?? 0;
       const deliveryFee = partner.deliveryFee ?? 0;
-      const vatYn = partner.vatYn ?? "N";        // Y or N
-      const storeType = partner.storeType ?? ""; // BAG or MONTH
+      const vatYn = partner.vatYn ?? "N";
+      const storeType = partner.storeType ?? "";
 
       let supplyAmount = 0;
       let taxAmount = 0;
 
-      // ================================================
-      //  🎯 공급가액 계산 분기
-      // ================================================
       if (storeType === "MONTH") {
-        // (월정액) 단가 + 기본요금
         supplyAmount = expectedAmount + deliveryFee;
       } else {
-        // (마대) qty × 단가 + 기본요금
         supplyAmount = qtySum * expectedAmount + deliveryFee;
       }
 
-      // ================================================
-      //  🎯 세액 계산
-      // ================================================
       if (vatYn === "Y") {
         taxAmount = Math.floor(supplyAmount * 0.1);
       } else {
@@ -84,9 +75,11 @@ export async function POST(req: Request) {
         partnerName: partner.partnerName,
         bizRegNo: partner.bizRegNo ?? "",
         ownerName: partner.ownerName ?? "",
+        vatYn: vatYn,                        // ⭐ 필수 추가!!
+
         totalAmount: supplyAmount,
         taxAmount: taxAmount,
-        workDate: startDate, // 조회 월의 1일로 세금계산서 작성
+        workDate: startDate,
       };
     });
 

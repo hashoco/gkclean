@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 export default function TaxInvoicePage() {
     const [month, setMonth] = useState(""); // yyyy-MM
     const [list, setList] = useState<any[]>([]);
+    const [vatFilter, setVatFilter] = useState("ALL");   // ⭐ 추가됨
     const sysdate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
     // 페이지 로드시: 기본 전월 세팅
@@ -44,19 +45,25 @@ export default function TaxInvoicePage() {
         setList(data.list ?? []);
     };
 
+    // 🔵 vatYn 필터 적용된 데이터
+    const filteredList = list.filter((row) => {
+        if (vatFilter === "ALL") return true;
+        return row.vatYn === vatFilter;
+    });
+
     const downloadExcel = () => {
-        if (!list || list.length === 0) {
+        if (!filteredList || filteredList.length === 0) {
             alert("다운로드할 데이터가 없습니다.");
             return;
         }
 
-        const excelData = list.map((row) => ({
+        const excelData = filteredList.map((row) => ({
             "전자(세금계산서) 등록 종류": "01",
             "작성일자": sysdate,
-            "공급자등록번호": "4236100897",        // ⭐ 여기는 너 회사 사업자등록번호 입력
+            "공급자등록번호": "4236100897",
             "공급자 종사업번호": "",
-            "공급자상호": "GKClean",               // ⭐ 공급자 상호
-            "공급자성명": "양정섭",               // ⭐ 공급자 상호
+            "공급자상호": "GKClean",
+            "공급자성명": "양정섭",
             "공급자 사업장주소": "",
             "공급자 업태": "",
             "공급자 종목": "",
@@ -84,7 +91,7 @@ export default function TaxInvoicePage() {
             "세액1": row.taxAmount,
             "품목비고1": "",
 
-            // ===== 품목 2~4 (비어 있음) =====
+            // ===== 품목 2~4 =====
             "일자2": "",
             "품목2": "",
             "규격2": "",
@@ -120,21 +127,16 @@ export default function TaxInvoicePage() {
             "영수(01)청구(02)": "02"
         }));
 
-        // 워크시트 생성
         const ws = XLSX.utils.json_to_sheet(excelData);
 
-        // 워크북 생성
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "세금계산서현황");
 
-        // 바이너리 변환
         const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
 
-        // 파일 다운로드
         const fileName = `세금계산서_${month}.xlsx`;
         saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), fileName);
     };
-
 
     return (
         <div className="p-6 space-y-6 text-gray-900 dark:text-gray-100">
@@ -142,7 +144,7 @@ export default function TaxInvoicePage() {
             <h1 className="text-2xl font-bold mb-4">세금계산서 발행 현황 (엑셀)</h1>
 
             {/* ================= 조회 조건 ================ */}
-            <div className="border p-4 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700 flex items-end gap-4 flex-wrap">
+            <div className="border p-4 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700 flex items-end gap-6 flex-wrap">
 
                 {/* 월 선택 */}
                 <div>
@@ -153,6 +155,45 @@ export default function TaxInvoicePage() {
                         onChange={(e) => setMonth(e.target.value)}
                         className="border p-2 rounded dark:bg-gray-800 dark:border-gray-700"
                     />
+                </div>
+
+                {/* 🔵 부가세 필터 추가 */}
+                <div className="flex flex-col">
+                    <p className="font-semibold mb-1">부가세</p>
+                    <div className="flex gap-3 text-sm">
+                        <label className="flex items-center gap-1">
+                            <input
+                                type="radio"
+                                name="vatFilter"
+                                value="ALL"
+                                checked={vatFilter === "ALL"}
+                                onChange={(e) => setVatFilter(e.target.value)}
+                            />
+                            전체
+                        </label>
+
+                        <label className="flex items-center gap-1">
+                            <input
+                                type="radio"
+                                name="vatFilter"
+                                value="Y"
+                                checked={vatFilter === "Y"}
+                                onChange={(e) => setVatFilter(e.target.value)}
+                            />
+                            Y
+                        </label>
+
+                        <label className="flex items-center gap-1">
+                            <input
+                                type="radio"
+                                name="vatFilter"
+                                value="N"
+                                checked={vatFilter === "N"}
+                                onChange={(e) => setVatFilter(e.target.value)}
+                            />
+                            N
+                        </label>
+                    </div>
                 </div>
 
                 <button
@@ -186,11 +227,12 @@ export default function TaxInvoicePage() {
                                 <th className="border p-2 text-right dark:border-gray-700">공급가액 합계</th>
                                 <th className="border p-2 text-right dark:border-gray-700">세액 합계</th>
                                 <th className="border p-2 dark:border-gray-700">작성일자</th>
+                                <th className="border p-2 dark:border-gray-700">부가세</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {list.map((row, idx) => (
+                            {filteredList.map((row, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td className="border p-2 dark:border-gray-700">{row.partnerName}</td>
                                     <td className="border p-2 dark:border-gray-700">{row.bizRegNo}</td>
@@ -202,13 +244,16 @@ export default function TaxInvoicePage() {
                                         {(row.taxAmount ?? 0).toLocaleString()}
                                     </td>
                                     <td className="border p-2 dark:border-gray-700">{row.workDate}</td>
+
+                                    {/* 🔵 vatYn 표시 */}
+                                    <td className="border p-2 dark:border-gray-700">{row.vatYn}</td>
                                 </tr>
                             ))}
 
-                            {list.length === 0 && (
+                            {filteredList.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={6}
+                                        colSpan={7}
                                         className="text-center p-4 text-gray-400 dark:text-gray-500"
                                     >
                                         조회된 데이터 없음

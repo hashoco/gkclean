@@ -17,11 +17,15 @@ export default function DeliveryPage() {
   const [remark, setRemark] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("");
-  const [storeType, setStoreType] = useState("BAG");  // ⭐ 코드값 저장
+  const [storeType, setStoreType] = useState("BAG");
   const [useYn, setUseYn] = useState("Y");
 
+  // 기존 검색 필터
   const [searchName, setSearchName] = useState("");
   const [useFilter, setUseFilter] = useState("ALL");
+
+  // 🔵 신규 추가: 부가세 필터
+  const [vatFilter, setVatFilter] = useState("ALL");
 
   const loadPartners = async () => {
     setLoading(true);
@@ -77,7 +81,7 @@ export default function DeliveryPage() {
       address,
       remark,
       expectedAmount: expectedAmount.replace(/,/g, ""),
-      deliveryFee: deliveryFee.replace(/,/g, ""), 
+      deliveryFee: deliveryFee.replace(/,/g, ""),
       storeType,
       delYn: useYn === "Y" ? "N" : "Y",
     };
@@ -111,7 +115,7 @@ export default function DeliveryPage() {
     setRemark("");
     setExpectedAmount("");
     setDeliveryFee("");
-    setStoreType("BAG");   // ⭐ 기본값 코드로 reset
+    setStoreType("BAG");
     setUseYn("Y");
   };
 
@@ -126,8 +130,7 @@ export default function DeliveryPage() {
     setAddress(p.address ?? "");
     setRemark(p.remark ?? "");
 
-    setStoreType(p.storeType ?? "BAG");   // ⭐ 코드값으로 세팅
-
+    setStoreType(p.storeType ?? "BAG");
     setUseYn(p.delYn === "N" ? "Y" : "N");
 
     setExpectedAmount(
@@ -141,6 +144,9 @@ export default function DeliveryPage() {
     );
   };
 
+  // =============================
+  //     필터 적용
+  // =============================
   const filtered = partners
     .filter((p: any) =>
       !searchName.trim()
@@ -152,6 +158,10 @@ export default function DeliveryPage() {
       if (useFilter === "Y") return p.delYn === "N";
       if (useFilter === "N") return p.delYn === "Y";
       return true;
+    })
+    .filter((p: any) => {
+      if (vatFilter === "ALL") return true;
+      return p.vatYn === vatFilter;
     });
 
   return (
@@ -159,7 +169,58 @@ export default function DeliveryPage() {
 
       {/* ================= 좌측 목록 ================= */}
       <div className="border rounded-lg p-4 bg-white dark:bg-gray-900 shadow-md">
-        <h2 className="text-lg font-bold mb-4">거래처 목록</h2>
+
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">거래처 목록</h2>
+
+          {/* 🔵 신규 추가: 조회조건 */}
+          <div className="flex items-center gap-4">
+
+            {/* 거래처명 검색 */}
+            <input
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              placeholder="거래처명"
+              className="border p-1 rounded text-sm dark:bg-gray-800 w-32"
+            />
+
+            {/* 부가세 라디오 */}
+            <div className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="vatFilter"
+                  value="ALL"
+                  checked={vatFilter === "ALL"}
+                  onChange={(e) => setVatFilter(e.target.value)}
+                />
+                전체
+              </label>
+
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="vatFilter"
+                  value="Y"
+                  checked={vatFilter === "Y"}
+                  onChange={(e) => setVatFilter(e.target.value)}
+                />
+                Y
+              </label>
+
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="vatFilter"
+                  value="N"
+                  checked={vatFilter === "N"}
+                  onChange={(e) => setVatFilter(e.target.value)}
+                />
+                N
+              </label>
+            </div>
+          </div>
+        </div>
 
         <div className="overflow-auto max-h-[600px] border rounded">
           <table className="w-full text-sm">
