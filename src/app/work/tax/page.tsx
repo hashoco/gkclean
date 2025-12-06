@@ -85,7 +85,7 @@ export default function TaxInvoicePage() {
             "공급자 업태": "",
             "공급자 종목": "",
             "공급자 이메일": "djena8637@naver.com",
-            "공급받는자 등록번호": row.bizRegNo,
+            "공급받는자 등록번호": (row.bizRegNo ?? "").replace(/-/g, ""),
             "공급받는자 종사업번호": "",
             "공급받는자상호": row.partnerName,
             "공급받는자 성명": row.ownerName,
@@ -99,7 +99,7 @@ export default function TaxInvoicePage() {
             "비고": "",
 
             // ===== 품목 1 =====
-            "일자1": row.workDate,
+            "일자1": sysdate,
             "품목1": "",
             "규격1": "",
             "수량1": "",
@@ -260,7 +260,7 @@ export default function TaxInvoicePage() {
                                     <td className="border p-2 text-right dark:border-gray-700">
                                         {(row.taxAmount ?? 0).toLocaleString()}
                                     </td>
-                                    <td className="border p-2 dark:border-gray-700">{row.workDate}</td>
+                                    <td className="border p-2 dark:border-gray-700">{sysdate}</td>
 
                                     {/* 🔵 vatYn 표시 */}
                                     <td className="border p-2 dark:border-gray-700">{row.vatYn}</td>
